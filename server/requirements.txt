@@ -1,1 +1,1 @@
-pyuv>=1.3.0,<=1.4.0
+pyuv @ git+https://github.com/saghul/pyuv@master#egg=pyuv
