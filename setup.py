@@ -18,7 +18,7 @@ setup(
         'subprocess.run; python_version < "3.5"',
         'atomicwrites',
         'pymemcache',
-        'pyuv @ git+https://github.com/saghul/pyuv@master#egg=pyuv',
+        'pyuv @ git+https://github.com/saghul/pyuv@2a3d42d44c6315ebd73899a35118380d2d5979b5#egg=pyuv',
     ],
     entry_points={
           'console_scripts': [
