@@ -341,7 +341,7 @@ class ManifestRepository:
         collapseBasedirInCmdPath = lambda path: collapseBasedirToPlaceholder(os.path.normcase(os.path.abspath(path)))
 
         commandLine = []
-        argumentsWithPaths = ("AI", "I", "FU")
+        argumentsWithPaths = ("AI", "I", "FU", "external:I")
         for k in sorted(arguments.keys()):
             if k in argumentsWithPaths:
                 commandLine.extend(["/" + k + collapseBasedirInCmdPath(arg) for arg in arguments[k]])
@@ -1283,7 +1283,7 @@ class CommandLineAnalyzer:
             ArgumentT3('FI'), ArgumentT3('U'), ArgumentT3('I'), ArgumentT3('F'),
             ArgumentT3('FU'), ArgumentT3('w1'), ArgumentT3('w2'), ArgumentT3('w3'),
             ArgumentT3('w4'), ArgumentT3('wd'), ArgumentT3('we'), ArgumentT3('wo'),
-            ArgumentT3('V'),
+            ArgumentT3('V'), ArgumentT3('external:I')
             # /NAME parameter
         }
         # Sort by length to handle prefixes
