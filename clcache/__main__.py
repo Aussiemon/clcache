@@ -124,17 +124,17 @@ class SuspendTracker():
         if not SuspendTracker.fileTracker:
             if windll.kernel32.GetModuleHandleW("FileTracker.dll"):
                 SuspendTracker.fileTracker = windll.FileTracker
-                printTraceStatement("Using FileTracker")
+                printTraceStatementVerbose("Using FileTracker")
                 return
             elif windll.kernel32.GetModuleHandleW("FileTracker32.dll"):
                 SuspendTracker.fileTracker = windll.FileTracker32
-                printTraceStatement("Using FileTracker32")
+                printTraceStatementVerbose("Using FileTracker32")
                 return
             elif windll.kernel32.GetModuleHandleW("FileTracker64.dll"):
                 SuspendTracker.fileTracker = windll.FileTracker64
-                printTraceStatement("Using FileTracker64")
+                printTraceStatementVerbose("Using FileTracker64")
                 return
-            printTraceStatement("FileTracker not defined")
+            printErrStr("FileTracker not defined")
 
     def __enter__(self):
         SuspendTracker.suspend()
@@ -1093,10 +1093,15 @@ def findCompilerBinary():
 
 
 def printTraceStatement(msg: str) -> None:
-    if "CLCACHE_LOG" in os.environ:
+    if "CLCACHE_LOG" in os.environ or "CLCACHE_LOG_VERBOSE" in os.environ:
         scriptDir = os.path.realpath(os.path.dirname(sys.argv[0]))
         with OUTPUT_LOCK:
             print(os.path.join(scriptDir, "clcache.py") + " " + msg)
+
+
+def printTraceStatementVerbose(msg: str) -> None:
+    if "CLCACHE_LOG_VERBOSE" in os.environ:
+        printTraceStatement(msg)
 
 
 class CommandLineTokenizer:
@@ -1404,14 +1409,14 @@ class CommandLineAnalyzer:
             objectFiles = [(objectFile, CommandLineAnalyzer.getPchFileName(options, inputFile[0]))
                            for inputFile, objectFile in zip(inputFiles, objectFiles)]
 
-        printTraceStatement("Compiler source files: {}".format(inputFiles))
-        printTraceStatement("Compiler object file: {}".format(objectFiles))
+        printTraceStatementVerbose("Compiler source files: {}".format(inputFiles))
+        printTraceStatementVerbose("Compiler object file: {}".format(objectFiles))
         return inputFiles, objectFiles
 
 
 def invokeRealCompiler(compilerBinary, cmdLine, captureOutput=False, outputAsString=True, environment=None):
     realCmdline = [compilerBinary] + cmdLine
-    printTraceStatement("Invoking real compiler as {}".format(realCmdline))
+    printTraceStatementVerbose("Invoking real compiler as {}".format(realCmdline))
 
     environment = environment or os.environ
 
@@ -1436,7 +1441,7 @@ def invokeRealCompiler(compilerBinary, cmdLine, captureOutput=False, outputAsStr
     else:
         returnCode = subprocess.call(realCmdline, env=environment)
 
-    printTraceStatement("Real compiler returned code {0:d}".format(returnCode))
+    printTraceStatementVerbose("Real compiler returned code {0:d}".format(returnCode))
 
     if outputAsString:
         stdoutString = stdout.decode(CL_DEFAULT_CODEC)
@@ -1593,7 +1598,7 @@ def processCacheHit(cache, objectFile, cachekey):
             copyOrLink(pchCachedArtifacts.objectFilePath, pchFile)
             writePchHash(pchFile, cachekey)
 
-        printTraceStatement("Finished. Exit code 0")
+        printTraceStatementVerbose("Finished. Exit code 0")
         return 0, cachedArtifacts.stdout, cachedArtifacts.stderr, False
 
 
@@ -1667,8 +1672,8 @@ clcache.py v{}
         print("Failed to locate cl.exe on PATH (and CLCACHE_CL is not set), aborting.")
         return 1
 
-    printTraceStatement("Found real compiler binary at '{0!s}'".format(compiler))
-    printTraceStatement("Arguments we care about: '{}'".format(sys.argv))
+    printTraceStatementVerbose("Found real compiler binary at '{0!s}'".format(compiler))
+    printTraceStatementVerbose("Arguments we care about: '{}'".format(sys.argv))
 
     if "CLCACHE_DISABLE" in os.environ:
         return invokeRealCompiler(compiler, sys.argv[1:])[0]
@@ -1692,11 +1697,11 @@ def printErrStr(message):
         print(message, file=sys.stderr)
 
 def processCompileRequest(cache, compiler, args):
-    printTraceStatement("Parsing given commandline '{0!s}'".format(args[1:]))
+    printTraceStatementVerbose("Parsing given commandline '{0!s}'".format(args[1:]))
 
     cmdLine, environment = extendCommandLineFromEnvironment(args[1:], os.environ)
     cmdLine = expandCommandLine(cmdLine)
-    printTraceStatement("Expanded commandline '{0!s}'".format(cmdLine))
+    printTraceStatementVerbose("Expanded commandline '{0!s}'".format(cmdLine))
 
     try:
         sourceFiles, objectFiles = CommandLineAnalyzer.analyze(cmdLine)
@@ -1756,7 +1761,7 @@ def scheduleJobs(cache: Any, compiler: str, cmdLine: List[str], environment: Any
                 compiler, jobCmdLine, srcFile, objFile, environment))
         for future in concurrent.futures.as_completed(jobs):
             exitCode, out, err, doCleanup = future.result()
-            printTraceStatement("Finished. Exit code {0:d}".format(exitCode))
+            printTraceStatementVerbose("Finished. Exit code {0:d}".format(exitCode))
             cleanupRequired |= doCleanup
             printOutAndErr(out, err)
 
