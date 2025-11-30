@@ -1699,9 +1699,13 @@ def printErrStr(message):
 def processCompileRequest(cache, compiler, args):
     printTraceStatementVerbose("Parsing given commandline '{0!s}'".format(args[1:]))
 
-    cmdLine, environment = extendCommandLineFromEnvironment(args[1:], os.environ)
-    cmdLine = expandCommandLine(cmdLine)
-    printTraceStatementVerbose("Expanded commandline '{0!s}'".format(cmdLine))
+    try:
+        cmdLine, environment = extendCommandLineFromEnvironment(args[1:], os.environ)
+        cmdLine = expandCommandLine(cmdLine)
+        printTraceStatementVerbose("Expanded commandline '{0!s}'".format(cmdLine))
+    except Exception as e:
+        printTraceStatement(f"An unexpected error occurred: {e}")
+        raise
 
     try:
         sourceFiles, objectFiles = CommandLineAnalyzer.analyze(cmdLine)
@@ -1726,9 +1730,17 @@ def processCompileRequest(cache, compiler, args):
     except CalledForPreprocessingError:
         printTraceStatement("Cannot cache invocation as {}: called for preprocessing".format(cmdLine))
         updateCacheStatistics(cache, Statistics.registerCallForPreprocessing)
+    except Exception as e:
+        printTraceStatement(f"An unexpected error occurred: {e}")
+        raise
 
-    exitCode, out, err = invokeRealCompiler(compiler, args[1:])
-    printOutAndErr(out, err)
+    try:
+        exitCode, out, err = invokeRealCompiler(compiler, args[1:])
+        printOutAndErr(out, err)
+    except Exception as e:
+        printTraceStatement(f"An unexpected error occurred: {e}")
+        raise
+
     return exitCode
 
 def filterSourceFiles(cmdLine: List[str], sourceFiles: List[Tuple[str, str]]) -> Iterator[str]:
