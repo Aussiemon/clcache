@@ -1524,7 +1524,7 @@ def cleanCache(cache, cleanFactor = 0.9, force = False):
 
 def clearCache(cache):
     with cache.lock, cache.statistics as stats:
-        cache.clean(stats, 0)
+        cache.clean(stats, 0, 0, True)
 
 
 # Returns pair:
