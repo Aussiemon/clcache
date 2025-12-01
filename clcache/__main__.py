@@ -245,7 +245,7 @@ class ManifestSection:
     @untrackable
     def setManifest(self, manifestHash, manifest):
         manifestPath = self.manifestPath(manifestHash)
-        printTraceStatement("Writing manifest with manifestHash = {} to {}".format(manifestHash, manifestPath))
+        printTraceStatementVerbose("Writing manifest with manifestHash = {} to {}".format(manifestHash, manifestPath))
         ensureDirectoryExists(self.manifestSectionDir)
         with atomic_write(manifestPath, overwrite=True) as outFile:
             # Converting namedtuple to JSON via OrderedDict preserves key names and keys order
